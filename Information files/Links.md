@@ -1,0 +1,4 @@
+# Blogs:
+- https://medium.com/@theo.wolf/physics-informed-neural-networks-a-simple-tutorial-with-pytorch-f28a890b874a
+- https://benmoseley.blog/my-research/so-what-is-a-physics-informed-neural-network/
+- https://maziarraissi.github.io/PINNs/
