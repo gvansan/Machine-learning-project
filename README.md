@@ -1,4 +1,4 @@
 # Machine-learning-project
-Project for the course machine learning to keep track of progress
+Project for the course machine learning to keep track of progress.
 
-Commit test.
+Test from VSCode
