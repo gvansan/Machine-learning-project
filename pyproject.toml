@@ -1,0 +1,25 @@
+[project]
+name = "ml-practica"
+version = "0.1.0"
+description = "Environment for the practical sessions of the ML course (C003758A)"
+requires-python = "~=3.12.0"
+dependencies = [
+    "flowsom",
+    "imbalanced-learn>=0.14.0",
+    "ipywidgets>=8.1.7",
+    "jupyterlab>=4.4.7",
+    "lightgbm>=4.6.0",
+    "modal-python",
+    "optuna>=4.5.0",
+    "pandas>=2.3.2",
+    "scikit-learn>=1.7.2",
+    "scikit-optimize>=0.10.2",
+    "seaborn>=0.13.2",
+    "shap>=0.48.0",
+    "statsmodels>=0.14.5",
+    "torch>=2.8.0",
+]
+
+[tool.uv.sources]
+flowsom = { git = "https://github.com/saeyslab/FlowSOM_Python", rev = "d8cb6a5934b1ca9c82f4bba27a1f3cd9862a0596" }
+modal-python = { git = "https://github.com/modAL-python/modAL.git", rev = "bba6f6fd00dbb862b1e09259b78caf6cffa2e755" }
