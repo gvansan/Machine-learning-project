@@ -1,4 +1,8 @@
 # Machine-learning-project
 Project for the course machine learning to keep track of progress.
 
-Test from VSCode. Test 2
+Update 24/10:
+
+- NN seems to work correctly
+- However, test data is not noisy at all. We should test the model on more noisy data
+- Once this is done and tested, we can start looking at PIMM
