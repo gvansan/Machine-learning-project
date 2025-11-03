@@ -55,7 +55,7 @@ class diffeq():
             
         return sol
 
-def create_trainig_test_set(eq: diffeq, t_span: tuple, n_steps: int, n_data: int, coeff_test: float, method:str, seed=0):
+def create_trainig_test_set(eq: diffeq, t_span: tuple, n_steps: int, n_data: int, coeff_test: float, method:str, device="cpu", seed=0):
     """Creates training and test data sets.
 
     Parameters
@@ -109,11 +109,15 @@ def create_trainig_test_set(eq: diffeq, t_span: tuple, n_steps: int, n_data: int
     
     for i, (args, x0) in enumerate(zip(args_tensor, x0_tensor)):
         sol = eq.solve(x0, t_span, n_steps, args, method)
-        t_tensor[i] = torch.from_numpy(sol.t)
-        y_tensor[i] = torch.from_numpy(sol.y).T   # transpose to (n_steps, n_var)
+        t_tensor[i] = torch.from_numpy(sol.t).to(device)
+        y_tensor[i] = torch.from_numpy(sol.y).to(device).T   # transpose to (n_steps, n_var)
 
+    args_tensor.to(device)
+    x0_tensor.to(device)
+    t_tensor.to(device)
+    y_tensor.to(device)
 
-    X = torch.zeros(n_data, n_steps, eq.n_args + eq.n_var + 1)
+    X = torch.zeros(n_data, n_steps, eq.n_args + eq.n_var + 1).to(device)
     
     for i in range(n_data):
         args_rep = args_tensor[i].repeat(n_steps, 1)   # (n_steps, n_args)
@@ -121,7 +125,7 @@ def create_trainig_test_set(eq: diffeq, t_span: tuple, n_steps: int, n_data: int
         t_col = t_tensor[i].unsqueeze(1)               # (n_steps, 1)
         
         # Concatenate into [args..., x0..., t]
-        X[i] = torch.cat([args_rep, x0_rep, t_col], dim=1)
+        X[i] = torch.cat([args_rep, x0_rep, t_col], dim=1).to(device)
 
     training_set = {
         "args_tensor": args_tensor[:n_train],
