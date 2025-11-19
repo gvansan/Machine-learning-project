@@ -188,13 +188,13 @@ def create_trainig_validation_test_set(eq: diffeq, t_span: tuple, n_steps: int, 
     args_tensor = torch.rand(n_data, eq.n_args)
     x0_tensor = torch.rand(n_data, eq.n_var)
     t_tensor = torch.zeros(n_data, n_steps)
-    #y_tensor = torch.zeros(n_data, n_steps, eq.n_var)
-    y_tensor = torch.zeros(n_data, eq.n_var, n_steps)
+    y_tensor = torch.zeros(n_data, n_steps, eq.n_var).to(device)
+    #y_tensor = torch.zeros(n_data, eq.n_var, n_steps)
     
     for i, (args, x0) in enumerate(zip(args_tensor, x0_tensor)):
         sol = eq.solve(x0, t_span, n_steps, args, method)
         t_tensor[i] = torch.from_numpy(sol.t).to(device)
-        y_tensor[i] = torch.from_numpy(sol.y).to(device).T   # transpose to (n_steps, n_var)
+        y_tensor[i] = torch.from_numpy(sol.y).T.to(device)   # transpose to (n_steps, n_var)
 
     args_tensor.to(device)
     x0_tensor.to(device)
