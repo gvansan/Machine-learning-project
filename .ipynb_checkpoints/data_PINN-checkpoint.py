@@ -47,8 +47,7 @@ class diffeq():
         sol
             scipy.integrate.solve_ivp solution
         """
-        t_eval = np.linspace(*t_span, n_steps)
-
+        t_eval = np.sort(np.random.uniform(t_span[0], t_span[1], n_steps))
 
         if method != "analytic_harmonic":
             if args == ():
