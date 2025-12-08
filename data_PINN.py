@@ -2,6 +2,7 @@ import numpy as np
 import scipy as sp
 import math
 import torch
+import types
 
 from typing import Callable
 
@@ -48,11 +49,33 @@ class diffeq():
         """
         t_eval = np.linspace(*t_span, n_steps)
 
-        if args == ():
-            sol = sp.integrate.solve_ivp(self.odes, t_span, x0, t_eval=t_eval, method=method)
+
+        if method != "analytic_harmonic":
+            if args == ():
+                sol = sp.integrate.solve_ivp(self.odes, t_span, x0, t_eval=t_eval, method=method)
+            else:
+                sol = sp.integrate.solve_ivp(self.odes, t_span, x0, args=args, t_eval=t_eval, method=method)
         else:
-            sol = sp.integrate.solve_ivp(self.odes, t_span, x0, args=args, t_eval=t_eval, method=method)
-            
+            if self.n_var < 2:
+                raise ValueError("analytic_harmonic requires n_var >= 2 (position and velocity).")
+        
+            k = float(args[0]) 
+            if k <= 0:
+                raise ValueError("omega^2 must be positive.")
+            omega = math.sqrt(k)
+        
+            x0_pos = float(x0[0])
+            x0_vel = float(x0[1])
+        
+            t0 = t_span[0]
+            tau = t_eval - t0 
+        
+            # analytic solution
+            x = x0_pos * np.cos(omega * tau) + (x0_vel / omega) * np.sin(omega * tau)
+            v = -omega * x0_pos * np.sin(omega * tau) + x0_vel * np.cos(omega * tau)
+        
+            sol = types.SimpleNamespace(t=t_eval, y=np.vstack([x, v]))
+
         return sol
 
 def create_trainig_test_set(eq: diffeq, t_span: tuple, n_steps: int, n_data: int, coeff_test: float, method:str, device="cpu", seed=0):
@@ -161,7 +184,7 @@ def create_trainig_validation_test_set(eq: diffeq, t_span: tuple, n_steps: int, 
     coeff_test
         The fraction of data samples that belong to the test set.
     method
-        The method for the numerical calculation (RK45, RK23, DOP853, Radau, BDF, LSODA).
+        The method for the numerical calculation (analytic_harmonic, RK45, RK23, DOP853, Radau, BDF, LSODA).
     seed
         Random seed used for generation of data.
 
