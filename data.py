@@ -97,29 +97,50 @@ def create_trainig_test_set(eq: diffeq, t_span: tuple, n_steps: int, n_data: int
     else:
         raise ValueError("coeff_test has to be in ]0,1[")
     
+    torch.use_deterministic_algorithms(True)
+    torch.manual_seed(seed)
+
     args_tensor = torch.rand(n_data, eq.n_args)
     x0_tensor = torch.rand(n_data, eq.n_var)
     t_tensor = torch.zeros(n_data, n_steps)
-    y_tensor = torch.zeros(n_data, eq.n_var, n_steps)
+    y_tensor = torch.zeros(n_data, n_steps, eq.n_var).to(device)
     
     # There's maybe a more efficient way...
     for i, (args, x0) in enumerate(zip(args_tensor, x0_tensor)):
         sol = eq.solve(x0, t_span, n_steps, args, method)
-        t_tensor[i] = torch.from_numpy(sol.t)
-        y_tensor[i] = torch.from_numpy(sol.y)
+        t_tensor[i] = torch.from_numpy(sol.t).to(device)
+        y_tensor[i] = torch.from_numpy(sol.y).T.to(device) #transpose to (n_steps, n_var)
 
-    training_tensors = [args_tensor[:n_train], x0_tensor[:n_train], t_tensor[:n_train], y_tensor[:n_train], y_tensor[:n_train].reshape(n_train, len(y_tensor[0]) * len(y_tensor[0][0]))]
-    test_tensors = [args_tensor[n_train:], x0_tensor[n_train:], t_tensor[n_train:], y_tensor[n_train:], y_tensor[n_train:].reshape(n_data - n_train, len(y_tensor[0]) * len(y_tensor[0][0]))]
-    training_set = {"args_tensor": training_tensors[0],
-                    "x0_tensor": training_tensors[1],
-                    "t_tensor": training_tensors[2],
-                    "y_tensor": training_tensors[3],
-                    "X": torch.cat([training_tensors[i] for i in [0, 1, 2]], dim=1)}
-    test_set = {"args_tensor": test_tensors[0],
-                    "x0_tensor": test_tensors[1],
-                    "t_tensor": test_tensors[2],
-                    "y_tensor": test_tensors[3],
-                    "X": torch.cat([test_tensors[i] for i in [0, 1, 2]], dim=1)}
+    args_tensor.to(device)
+    x0_tensor.to(device)
+    t_tensor.to(device)
+    y_tensor.to(device)
+
+    X = torch.zeros(n_data, n_steps, eq.n_args + eq.n_var + 1).to(device)
+
+    for i in range(n_data):
+        args_rep = args_tensor[i].repeat(n_steps, 1)   # (n_steps, n_args)
+        x0_rep = x0_tensor[i].repeat(n_steps, 1)       # (n_steps, n_var)
+        t_col = t_tensor[i].unsqueeze(1)               # (n_steps, 1)
+        
+        # Concatenate into [args..., x0..., t]
+        X[i] = torch.cat([args_rep, x0_rep, t_col], dim=1).to(device)
+
+    training_set = {
+        "args_tensor": args_tensor[:n_train],
+        "x0_tensor": x0_tensor[:n_train],
+        "t_tensor": t_tensor[:n_train],
+        "y_tensor": y_tensor[:n_train],
+        "X": X[:n_train],
+    }
+
+    test_set = {
+        "args_tensor": args_tensor[n_train:],
+        "x0_tensor": x0_tensor[n_train:],
+        "t_tensor": t_tensor[n_train:],
+        "y_tensor": y_tensor[n_train:],
+        "X": X[n_train:],
+    }
 
     return training_set, test_set
 
