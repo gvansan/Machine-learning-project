@@ -93,7 +93,7 @@ def create_trainig_test_set(eq: diffeq, t_span: tuple, n_steps: int, n_data: int
                     it is used as input in a neural network.
     """
     if coeff_test < 1 and coeff_test > 0:
-        n_train = math.floor((1 - coeff_test) * n_data)
+        n_train = max(1, math.floor((1 - coeff_test) * n_data))
     else:
         raise ValueError("coeff_test has to be in ]0,1[")
     
